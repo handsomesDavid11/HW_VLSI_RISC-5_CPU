@@ -18,8 +18,10 @@ module IF (
     output reg [31:0] IF_instr_out,//if register output
 
     output [31:0] pc_out//
-)
-     localparam [1:0] PC_4=2'b00, PC_IMM=2'b01, PC_IMMRS1=2'b10;
+);
+     localparam [1:0]    PC_4      = 2'b00,
+                         PC_IMM    = 2'b01,
+                         PC_IMMRS1 = 2'b10;
 
      reg [31:0] wire_pc_out;//pc's result
      reg [31:0] pc_in;
@@ -27,11 +29,13 @@ module IF (
      assign pc_4=wire_pc_out+4;
      always_comb begin
           case (BranchCtrl)
-               PC_4: pc_in = pc_4
-               PC_IMM: pc_in = pc_imm;
+               PC_4:      pc_in = pc_4;
+               PC_IMM:    pc_in = pc_imm;
                PC_IMMRS1: pc_in = pc_immrs1;
           endcase
      end
+
+//----------------- program counter------------//
      Program_Counter Program_Counter(
           .rst(rst),
           .clk(clk),
@@ -39,6 +43,8 @@ module IF (
           .pc_in(pc_in),
           .pc_out(wire_pc_out)
      );
+
+//-----------------instruction flush-----------//
      always_ff @(posedge clk or posedge rst) begin
           if(rst) begin
                IF_pc_out <= 32'b0;

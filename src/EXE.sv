@@ -22,36 +22,28 @@ module EXE(
      output EXE_pc_to_reg,
      output EXE_ALU_out,
      output EXE_rs2_data,
-     output EXE_rd_addr,
-     output 
+     output EXE_rd_addr
+    
 );
 
      wire [31:0] wire_pc_4;
      wire [31:0] wire_pc_imm;
      wire [31:0] wire_pc_to_reg;
 
-
+//------------------------ pc+4 and pc+imm------------------------//
      assign wire_pc_4   = ID_pc_out + 4;
      assign wire_pc_imm = ID_pc_out + ID_imm;
-     //mux 2
-     always_comb begin
-          if(ID_PCtoRegSrc)   
-               wire_pc_to_reg = wire_pc_4;
-          else 
-               wire_pc_to_reg = wire_pc_imm;
-     end     
+     //mux 2  
+//----------------- ID_pctoregsrc to chioce PC+4 or PC+imm--------?//
+     assign wire_pc_to_reg = (ID_PCtoRegSrc) ? wire_pc_4 : wire_pc_imm;
+
      
      wire [31:0] wire_ALUSrc1;
      wire [31:0] wire_ALUSrc2;
 
      assign  wire_ALUSrc1 = ID_rs1;
      assign  wire_ALUSrc2 = ID_rs2;
-
-
-     if(ID_ALUSrc)
-          wire_ALUSrc2 = ID_rs2;
-     else
-          wire_ALUSrc2 = ID_imm;
+     assign  wire_ALUSrc2 = (ID_PCtoRegSrc) ? ID_rs2 : ID_imm;
 
      wire [2:0] wire_funct3;
      wire [6:0] wire_funct7;

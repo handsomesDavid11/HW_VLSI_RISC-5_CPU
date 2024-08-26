@@ -7,7 +7,7 @@ module ID(
      input [31:0]     IF_pc_out,
      input [31:0]     IF_instr_out,
      input [31:0]     WB_rd_data,
-     input [31:0]     WB_rd_addr,
+     input [4:0]     WB_rd_addr,
      input            WB_RegWrite,
      //data  
      output reg [31:0] ID_rs1,
@@ -33,8 +33,8 @@ module ID(
 
 );
      //assign ID_pc_out <= IF_pc_out; //
-     assign ID_rs1_addr = IF_instr_out[19:15];
-     assign ID_rs2_addr = IF_instr_out[24:20];
+     //assign ID_rs1_addr = IF_instr_out[19:15];
+     //assign ID_rs2_addr = IF_instr_out[24:20];
 
      //register output
      wire [31:0] wire_rs1,wire_rs2;
@@ -58,7 +58,7 @@ module ID(
 
           .rs1_addr(IF_instr_out[19:15]),
           .rs2_addr(IF_instr_out[24:20]),
-          .WB_rd_addr(WB_rd_addr[31:0]),
+          .WB_rd_addr(WB_rd_addr[4:0]),
           .WB_rd_data(WB_rd_data[31:0]),
           //output
           .rs1_data(wire_rs1),

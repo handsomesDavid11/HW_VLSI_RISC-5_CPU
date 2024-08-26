@@ -2,7 +2,7 @@ module Program_Counter(
      input rst,
      input clk,
      input PC_write,
-     input pc_in,
+     input [31:0] pc_in,
      output reg [31:0] pc_out
 );
 
