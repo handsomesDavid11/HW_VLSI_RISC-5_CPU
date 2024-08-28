@@ -15,24 +15,27 @@ module controlUnit(
 
      output reg [1:0] Branch
 );
+//------------------------the state if immediate-------------------//
      localparam [2:0]    I_Imm = 3'b000,
                          S_Imm = 3'b001,
                          B_Imm = 3'b010,
                          U_Imm = 3'b011,
                          J_Imm = 3'b100;
+//-------------------------the state of ALUOP----------------------//
+     localparam [2:0]    R_type      = 3'b000,
+                         I_type      = 3'b001,
+                         ADD_type    = 3'b010,
+                         JALR_type =   3'b011,
+                         B_type      = 3'b100,
+                         LUI_type    = 3'b101;
 
-     localparam [2:0]    R_type   = 3'b000,
-                         I_type   = 3'b001,
-                         ADD_type = 3'b010,
-                         B_type   = 3'b011;
-
-
-     localparam [1:0] None_branch    = 2'b00,
+//---------------------the state of branch control-----------------//
+     localparam [1:0]    None_branch = 2'b00,
                          B_branch    = 2'b01,
                          JALR_branch = 2'b10,
                          J_branch    = 2'b11;
 
-
+//---------------According opcode to output control signal---------//
      always_comb begin
      case (opcode)
           //R_type
@@ -86,7 +89,7 @@ module controlUnit(
                PCtoRegSrc = 1'b0;   //don't care
                ALUSrc     = 1'b0;   
                RDSrc      = 1'b1;   //don't care
-               MemtoReg   = 1'b1;
+               MemtoReg   = 1'b0;
                MemWrite   = 1'b0;
                MemRead    = 1'b0;
                RegWrite   = 1'b1;
@@ -123,34 +126,51 @@ module controlUnit(
 
           end
 
-          //U_type
+
+//--------------------AUIPC---------------------//
           7'b0010111: begin
                ImmType    = U_Imm;
-               ALUOp      = B_type;
-               PCtoRegSrc = 1'b0;   //don't care
-               ALUSrc     = 1'b1;   
-               RDSrc      = 1'b0;   //don't care
+               ALUOp      = ADD_type;//don't care
+               PCtoRegSrc = 1'b1;   
+               ALUSrc     = 1'b1;   //don't care
+               RDSrc      = 1'b1;   
                MemtoReg   = 1'b0;
                MemWrite   = 1'b0;
                MemRead    = 1'b0;
-               RegWrite   = 1'b0;
-               Branch     = B_branch;
+               RegWrite   = 1'b1;
+               Branch     = None_branch;
 
 
           end
+//-----------------------LUI-----------------------//
+          7'b0110111:begin
+               ImmType    = U_Imm;
+               ALUOp      = LUI_type;
+               PCtoRegSrc = 1'b0;   //don't care
+               ALUSrc     = 1'b0;   
+               RDSrc      = 1'b0;   
+               MemtoReg   = 1'b0;
+               MemWrite   = 1'b0;
+               MemRead    = 1'b0;
+               RegWrite   = 1'b1;
+               Branch     = None_branch;
+          
+          end
 
-          7'b0110111:
-          //J_type
-          7'b1101111:
-
-
-
-
-
+//----------------------J_type---------------------//
+          7'b1101111:begin
+               ImmType    = J_Imm;
+               ALUOp      = ADD_type; //don't care
+               PCtoRegSrc = 1'b0;   //pc+4 
+               ALUSrc     = 1'b0;   //don't care
+               RDSrc      = 1'b1;   
+               MemtoReg   = 1'b0;   
+               MemWrite   = 1'b0;
+               MemRead    = 1'b0;  
+               RegWrite   = 1'b1;  
+               Branch     = J_branch;
+          end
      endcase
-
-
-
      end
 
 

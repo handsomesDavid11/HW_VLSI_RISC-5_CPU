@@ -7,7 +7,7 @@ module ID(
      input [31:0]     IF_pc_out,
      input [31:0]     IF_instr_out,
      input [31:0]     WB_rd_data,
-     input [4:0]     WB_rd_addr,
+     input [4:0]      WB_rd_addr,
      input            WB_RegWrite,
      //data  
      output reg [31:0] ID_rs1,

@@ -12,12 +12,12 @@ module IF (
 
     input PC_write,
 
-    input [31:0] instr_out,//mux output
+    input [31:0] instr_out,//memory output
 
     output reg [31:0] IF_pc_out,//if register output
     output reg [31:0] IF_instr_out,//if register output
 
-    output [31:0] pc_out//
+    output reg [31:0] pc_out//
 );
      localparam [1:0]    PC_4      = 2'b00,
                          PC_IMM    = 2'b01,
