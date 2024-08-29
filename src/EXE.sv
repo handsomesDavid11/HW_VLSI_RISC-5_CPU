@@ -4,6 +4,9 @@
 module EXE(
      input clk,
      input rst,
+     input [1:0]   FDSignal,
+     input [31:0]   MEM_rd_data,
+     input [31:0]   WB_rd_data,
      //data
      input [31:0]  ID_rs1,
      input [31:0]  ID_rs2,
@@ -54,12 +57,38 @@ module EXE(
      assign wire_pc_to_reg = (ID_PCtoRegSrc) ? wire_pc_4 : wire_pc_imm;
 
 //-----------------------ALU src choice----------------------------//
-     wire [31:0] wire_ALUSrc1;
-     wire [31:0] wire_ALUSrc2;
-
-     assign  wire_ALUSrc1 = ID_rs1;
+     reg [31:0] ALUSrc1;
+     reg [31:0] ALUSrc2;
+     reg [31:0] wire_ALUSrc2;
+     
+     
    //assign  wire_ALUSrc2 = ID_rs2;
-     assign  wire_ALUSrc2 = (ID_PCtoRegSrc) ? ID_rs2 : ID_imm;
+   //  assign  wire_ALUSrc2 = (ID_PCtoRegSrc) ? ID_rs2 : ID_imm;
+     always_comb begin
+          case(FDSignal)
+               2'b00:
+                    ALUSrc1 = ID_rs1;
+               2'b01:
+                    ALUSrc1 = MEM_rd_data;
+               2'b10:
+                    ALUSrc1 = WB_rd_data;
+          endcase
+     end
+
+     always_comb begin
+          case(FDSignal)
+               2'b00:
+                    wire_ALUSrc2 = ID_rs2;
+               2'b01:
+                    wire_ALUSrc2 = MEM_rd_data;
+               2'b10:
+                    wire_ALUSrc2 = WB_rd_data;
+          endcase
+     end
+     assign  ALUSrc2 = (ID_PCtoRegSrc) ? wire_ALUSrc2 : ID_imm;
+
+
+
 //---------------------------ALU_control unit-----------------------//
      wire [2:0] wire_funct3;
      wire [6:0] wire_funct7;
@@ -82,8 +111,8 @@ module EXE(
      );
 
      ALU ALU(
-          .rs1(wire_ALUSrc1),
-          .rs2(wire_ALUSrc2),
+          .rs1(ALUSrc1),
+          .rs2(ALUSrc2),
           .ALUCtrl(wire_ALUOp),
           .zeroFlag(wire_zeroFlag),
           .ALU_out(wire_ALU_out)

@@ -3,7 +3,7 @@
 `include "EXE.sv"
 `include "MEM.sv"
 `include "WB.sv"
-
+`include "HazzardCtrl.sv"
 `include "SRAM_wrapper.sv"
 module TOP(
      input clk,
@@ -36,6 +36,26 @@ IF IF(
     .IF_instr_out(IF_instr_out),           //if register output
     .pc_out(pc_out)                        // to memory
 );
+
+     wire instrFlush;
+
+     wire CtrlSignalFlush;
+
+HazardCtrl HazardCtrl(
+     .ID_MemRead(ID_MemRead),
+     .ID_rd_addr(ID_rd_addr),
+     .rs1_addr(ID_rs1_addr),
+     .rs2_addr(ID_rs2_addr),
+     .BranchCtrl(BranchCtrl),
+     //output
+     .PC_write(PC_write),
+     .instrFlush(instrFlush),
+     .IFID_RegWrite(IFID_RegWrite),
+     .CtrlSignalFlush(CtrlSignalFlush),
+
+);
+
+
 
 SRAM_wrapper IM (
     .CK(clk),
@@ -118,9 +138,24 @@ ID ID(
      wire      EXE_RegWrite;
 
      wire [2:0] EXE_funct3;
+     wire [1:0] FDSignal;
+ForwardingUnit ForwardingUnit(
+     .MEM_regWrite(MEM_RegWrite),
+     .EXE_regWrite(EXE_RegWrite),
+     .rs1_addr(ID_rs1_addr),
+     .rs2_addr(ID_rs2_addr),
+     .MEM_rd_addr(MEM_rd_addr), 
+     .EXE_rd_addr(EXE_rd_addr),
+     .FDSignal(FDSignal)
+);
+
+
 EXE EXE(
      .clk(clk),
      .rst(rst),
+     .FDSignal(FDSignal),
+     .MEM_rd_data(MEM_rd_data),
+     .WB_rd_data(WB_rd_data),
 
      .ID_rs1(ID_rs1),
      .ID_rs2(ID_rs2),
@@ -131,6 +166,7 @@ EXE EXE(
      .ID_rs1_addr(ID_rs1_addr),
      .ID_rs2_addr(ID_rs2_addr),
      .ID_rd_addr(ID_rd_addr),
+
      //control unit
      .ID_ALUOp(ID_ALUOp),
      .ID_PCtoRegSrc(ID_PCtoRegSrc),
@@ -157,7 +193,7 @@ EXE EXE(
 );
 
      wire MEM_MemtoReg;
-     wire MEM_regWrite;
+     wire MEM_RegWrite;
      wire [31:0] MEM_rd_data;
      wire [31:0] MEM_Dout;   
      wire [4:0] MEM_rd_addr;
