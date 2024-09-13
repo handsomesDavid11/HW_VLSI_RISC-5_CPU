@@ -1,14 +1,14 @@
 module ALU(
      input [31:0] rs1,
      input [31:0] rs2,
-     input [2:0]  ALUCtrl,
+     input [4:0]  ALUCtrl,
      output reg zeroFlag,
      output reg [31:0] ALU_out
 
 );
 
 
-localparam [5:0]    ADD        = 5'b00000,
+localparam [4:0]    ADD        = 5'b00000,
                     SUB         = 5'b00001,
                     SLL         = 5'b00010,
                     SLT         = 5'b00011,
@@ -16,7 +16,7 @@ localparam [5:0]    ADD        = 5'b00000,
                     XOR         = 5'b00101,
                     SRL         = 5'b00110,
                     SRA         = 5'b00111,
-                    OR          = 5'b01000,//8
+                    OR          = 5'b01000,
                     AND         = 5'b01001,
                     JALR        = 5'b01010,
                     BEQ         = 5'b01011,
@@ -45,7 +45,7 @@ localparam [5:0]    ADD        = 5'b00000,
           SLTU:     ALU_out = (rs1 < rs2) ? 32'b1:32'b0;
           XOR :     ALU_out = rs1 ^ rs2;
           SRL :     ALU_out = rs1 >> rs2[4:0];
-          SRA :     ALU_out = signed_rs1 >> rs2[4:0];
+          SRA :     ALU_out = signed_rs1 >>> rs2[4:0];
           OR  :     ALU_out = rs1 | rs2;
           AND :     ALU_out = rs1 & rs2;
           JALR:     ALU_out = {sum[31:1],1'b0};
@@ -57,13 +57,13 @@ localparam [5:0]    ADD        = 5'b00000,
      always_comb begin
      case (ALUCtrl)      
      
-          BEQ :    zeroFlag =  (rs1 == rs2) ? 32'b1 : 32'b0;
-          BNE :    zeroFlag =  (rs1 != rs2) ? 32'b1 : 32'b0;
-          BLT :    zeroFlag =  (signed_rs1  < signed_rs2) ? 32'b1 : 32'b0; 
-          BGE :    zeroFlag =  (signed_rs1 >= signed_rs2) ? 32'b1 : 32'b0;
-          BLTU:    zeroFlag =  (rs1 <  rs2) ? 32'b1 : 32'b0;
-          BGEU:    zeroFlag =  (rs1 >= rs2) ? 32'b1 : 32'b0;
-          default :    zeroFlag = 32'b0; 
+          BEQ :    zeroFlag =  (rs1 == rs2) ? 1'b1 : 1'b0;
+          BNE :    zeroFlag =  (rs1 != rs2) ? 1'b1 : 1'b0;
+          BLT :    zeroFlag =  (signed_rs1  < signed_rs2) ? 1'b1 : 1'b0; 
+          BGE :    zeroFlag =  (signed_rs1 >= signed_rs2) ? 1'b1 : 1'b0;
+          BLTU:    zeroFlag =  (rs1 <  rs2) ? 1'b1 : 1'b0;
+          default:    zeroFlag =  (rs1 >= rs2) ? 1'b1 : 1'b0;
+          
      
      endcase
 

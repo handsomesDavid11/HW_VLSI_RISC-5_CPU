@@ -1,10 +1,14 @@
-`include "ALU_Ctrl.sv"
+`include "ALU_ctrl.sv"
 `include "ALU.sv"
 `include "BranchCtrl.sv"
+
+
 module EXE(
      input clk,
      input rst,
-     input [1:0]   FDSignal,
+     input [1:0] FDSignal1,
+     input [1:0] FDSignal2,
+
      input [31:0]   MEM_rd_data,
      input [31:0]   WB_rd_data,
      //data
@@ -31,7 +35,7 @@ module EXE(
      input       ID_RegWrite,
      input       [1:0] ID_Branch,
      
-          
+
      output reg [31:0] EXE_pc_to_reg,
      output reg [31:0] EXE_ALU_out,
      output reg [31:0] EXE_rs2_data,
@@ -41,20 +45,32 @@ module EXE(
      output reg      EXE_MemWrite,
      output reg      EXE_MemRead,
      output reg      EXE_RegWrite,
-     output reg [1:0] EXE_Branch,
-     output reg [2:0] EXE_funct3
-);
+     output reg [1:0] wire_BranchCtrl,
+     output reg [2:0] EXE_funct3,
 
+
+     output reg [31:0] pc_imm,
+     output reg [31:0] pc_immrs1 
+
+
+);
+     wire wire_zeroFlag;
+     wire [31:0] wire_ALU_out;
      wire [31:0] wire_pc_4;
      wire [31:0] wire_pc_imm;
-     wire [31:0] wire_pc_to_reg;
+
 
 //------------------------ pc+4 and pc+imm------------------------//
      assign wire_pc_4   = ID_pc_out + 4;
      assign wire_pc_imm = ID_pc_out + ID_imm;
      //mux 2  
 //----------------- ID_pctoregsrc to chioce PC+4 or PC+imm--------?//
-     assign wire_pc_to_reg = (ID_PCtoRegSrc) ? wire_pc_4 : wire_pc_imm;
+ 
+     assign pc_imm    = wire_pc_imm;
+     assign pc_immrs1 = wire_ALU_out;
+     assign zeroFlag  = wire_zeroFlag;
+
+
 
 //-----------------------ALU src choice----------------------------//
      reg [31:0] ALUSrc1;
@@ -65,7 +81,7 @@ module EXE(
    //assign  wire_ALUSrc2 = ID_rs2;
    //  assign  wire_ALUSrc2 = (ID_PCtoRegSrc) ? ID_rs2 : ID_imm;
      always_comb begin
-          case(FDSignal)
+          case(FDSignal1)
                2'b00:
                     ALUSrc1 = ID_rs1;
                2'b01:
@@ -76,16 +92,16 @@ module EXE(
      end
 
      always_comb begin
-          case(FDSignal)
+          case(FDSignal2)
                2'b00:
                     wire_ALUSrc2 = ID_rs2;
                2'b01:
                     wire_ALUSrc2 = MEM_rd_data;
                2'b10:
-                    wire_ALUSrc2 = WB_rd_data;
+                    wire_ALUSrc2 = WB_rd_data;//WB_rd_data
           endcase
      end
-     assign  ALUSrc2 = (ID_PCtoRegSrc) ? wire_ALUSrc2 : ID_imm;
+     assign  ALUSrc2 = (ID_ALUSrc) ?   wire_ALUSrc2:ID_imm;
 
 
 
@@ -95,15 +111,14 @@ module EXE(
      wire [2:0] wire_ALUOp;
      wire [4:0] wire_ALUCtrl;
      // output
-     wire wire_zeroFlag;
-     wire [31:0] wire_ALU_out;
+     
 
 
      assign wire_funct3 = ID_funct3;
      assign wire_funct7 = ID_funct7;
      assign wire_ALUOp  = ID_ALUOp;
 
-     ALU_Ctrl ALU_ctrl(
+     ALU_ctrl ALU_ctrl(
           .ALUOp(wire_ALUOp),
           .funct3(wire_funct3),
           .funct7(wire_funct7),
@@ -113,14 +128,14 @@ module EXE(
      ALU ALU(
           .rs1(ALUSrc1),
           .rs2(ALUSrc2),
-          .ALUCtrl(wire_ALUOp),
+          .ALUCtrl(wire_ALUCtrl),
           .zeroFlag(wire_zeroFlag),
           .ALU_out(wire_ALU_out)
      );
      BranchCtrl BranchCtrl(
           .wire_zeroFlag(wire_zeroFlag),
           .Branch(ID_Branch),
-          .BranchCtrl(EXE_Branch)
+          .BranchCtrl(wire_BranchCtrl)
      );
 
 
@@ -142,9 +157,12 @@ module EXE(
 
           
           else begin
-               EXE_pc_to_reg <= wire_pc_to_reg;
+               if(ID_PCtoRegSrc)
+                    EXE_pc_to_reg <=  wire_pc_imm;
+               else
+                    EXE_pc_to_reg <=wire_pc_4;
                EXE_ALU_out   <= wire_ALU_out;
-               EXE_rs2_data  <= ID_rs2;
+               EXE_rs2_data  <= wire_ALUSrc2;
                EXE_rd_addr   <= ID_rd_addr;
                EXE_funct3    <= ID_funct3;
 

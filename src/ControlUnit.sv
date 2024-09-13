@@ -11,7 +11,6 @@ module controlUnit(
      output reg MemWrite,
      output reg MemRead,
      output reg RegWrite,
-     output reg Branch,
 
      output reg [1:0] Branch
 );
@@ -31,8 +30,8 @@ module controlUnit(
 
 //---------------------the state of branch control-----------------//
      localparam [1:0]    None_branch = 2'b00,
-                         B_branch    = 2'b01,
-                         JALR_branch = 2'b10,
+                         JALR_branch = 2'b01,
+                         B_branch    = 2'b10,
                          J_branch    = 2'b11;
 
 //---------------According opcode to output control signal---------//
@@ -70,7 +69,7 @@ module controlUnit(
           end
           //I_type
           7'b0010011:begin
-               ImmType    = S_Imm;
+               ImmType    = I_Imm;
                ALUOp      = I_type;
                PCtoRegSrc = 1'b0;   //don't care
                ALUSrc     = 1'b0;   
@@ -132,7 +131,7 @@ module controlUnit(
                ImmType    = U_Imm;
                ALUOp      = ADD_type;//don't care
                PCtoRegSrc = 1'b1;   
-               ALUSrc     = 1'b1;   //don't care
+               ALUSrc     = 1'b0;   //don't care
                RDSrc      = 1'b1;   
                MemtoReg   = 1'b0;
                MemWrite   = 1'b0;
@@ -169,6 +168,18 @@ module controlUnit(
                MemRead    = 1'b0;  
                RegWrite   = 1'b1;  
                Branch     = J_branch;
+          end
+          default: begin
+               ImmType    = I_Imm;
+               ALUOp      = ADD_type;  // don't care
+               PCtoRegSrc = 1'b0;  // PC + 4
+               ALUSrc     = 1'b0;  // don't care
+               RDSrc      = 1'b0;  // PC
+               MemtoReg   = 1'b0;
+               MemWrite   = 1'b0;
+               MemRead    = 1'b0;
+               RegWrite   = 1'b0;
+               Branch     = None_branch;
           end
      endcase
      end

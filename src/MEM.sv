@@ -18,7 +18,7 @@ module MEM(
 
 
      output reg MEM_MemtoReg,
-     output reg MEM_regWrite,
+     output reg MEM_RegWrite,
      output reg [31:0] MEM_rd_data,    
      output reg [31:0] MEM_Dout,    //data from data mem
      output reg [4:0] MEM_rd_addr,
@@ -27,71 +27,81 @@ module MEM(
      input [31:0] Dout,
      output reg wire_chip_select,                    //chip select
      output reg [3:0] wire_WE,                   //write enable 
-     output reg [31:0] wire_Din                  //data in 
+     output reg [31:0] wire_Din ,                //data in 
+     output [31:0] wire_mem_rd_data
 
 );
 
      
-     wire [31:0] wire_mem_rd_data;
+
      assign wire_mem_rd_data = (EXE_RDSrc) ? EXE_pc_to_reg : EXE_ALU_out;
      assign wire_chip_select = EXE_MemRead | EXE_MemWrite;
 
-     reg [31:0] wire_Dout;
+    always_comb begin
+        wire_WE = 4'b1111;
+        if(EXE_MemWrite) begin
+            case (EXE_funct3)
+                3'b000: // SB
+                    wire_WE[EXE_ALU_out[1:0]] = 1'b0;
+                3'b001: // SH
+                    wire_WE[{EXE_ALU_out[1],1'b0}+:2] = 2'b00;
+                default: // SW
+                    wire_WE = 4'b0000;
+            endcase
+        end
+    end    
 
      always_comb begin
-          case(EXE_funct3)
-               3'b010:                //LW
-               begin
-                    wire_Dout = Dout;
-               end
-               3'b000:                //LB
-               begin
-                    wire_Dout = {{24{Dout[7]}},Dout[7:0]};
-               end
-               3'b001:                //LH
-               begin
-                    wire_Dout = {{16{Dout[15]}},Dout[15:0]};
-               end
-               3'b101:                //LBU
-               begin
-                    wire_Dout = {{24{Dout[7]}},Dout[7:0]};
-               end
-               3'b100:                //LHU
-               begin
-                    wire_Dout = {16{Dout[15],Dout[15:0]}}; 
-               end
-          endcase
+        wire_Din = 32'b0;
+        case (EXE_funct3)
+            3'b000: // SB
+                wire_Din[{EXE_ALU_out[1:0], 3'b0}+:8] = EXE_rs2_data[7:0];
+            3'b001: // SH
+                wire_Din[{EXE_ALU_out[1], 4'b0}+:16] = EXE_rs2_data[15:0];
+            default : // SW
+                wire_Din = EXE_rs2_data;
+        endcase
+    end
+
+
+
+always_ff @(posedge clk or posedge rst) begin
+        if(rst) begin
+            MEM_MemtoReg    <= 1'b0;
+            MEM_RegWrite    <= 1'b0;
+            MEM_rd_data     <= 32'b0;
+            MEM_Dout        <= 32'b0;
+            MEM_rd_addr     <= 5'b0;
+        end else begin
+            MEM_MemtoReg    <= EXE_MemtoReg;
+            MEM_RegWrite    <= EXE_RegWrite;
+
+            if(EXE_RDSrc)
+                MEM_rd_data <= EXE_pc_to_reg;
+            else
+                MEM_rd_data <= EXE_ALU_out;
+
+ 
+            case(EXE_funct3)
+                3'b010: // LW
+                    MEM_Dout <= Dout;
+                3'b000: // LB
+                    MEM_Dout <= {{24{Dout[7]}}, Dout[7:0]};
+                3'b001: // LH
+                    MEM_Dout <= {{16{Dout[15]}}, Dout[15:0]};
+                3'b100: // LBU
+                    MEM_Dout <= {24'b0, Dout[7:0]};
+                3'b101: // LHU
+                    MEM_Dout <= {16'b0, Dout[15:0]};
+                default:
+                    MEM_Dout <= 32'b0;
+            endcase // EXE_funct3
+
+            MEM_rd_addr     <= EXE_rd_addr;
+        end
+    end
 
      
-
-
-
-     
-     
-     end 
-
-     always_ff @(posedge clk  or posedge rst)begin
-          if(rst) begin
-               MEM_MemtoReg <= 1'b0;
-               MEM_regWrite <= 1'b0;
-               MEM_rd_data  <= 32'b0;
-               MEM_Dout     <= 32'b0;
-               MEM_rd_addr  <= 5'b0;
-               
-
-
-          end
-          else begin
-               MEM_MemtoReg <= EXE_MemtoReg;
-               MEM_regWrite <= EXE_RegWrite;
-               MEM_rd_data  <= wire_mem_rd_data;
-               MEM_Dout     <= wire_Dout;
-               MEM_rd_addr  <= EXE_rd_addr;
-
-          end
-
-
-     end 
 
      
 

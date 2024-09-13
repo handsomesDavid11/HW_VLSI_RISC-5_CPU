@@ -1,4 +1,6 @@
 `include "RegisterFile.sv"
+`include "ImmediateGenerator.sv"
+`include "controlUnit.sv"
 
 module ID(
      input clk,
@@ -9,6 +11,9 @@ module ID(
      input [31:0]     WB_rd_data,
      input [4:0]      WB_rd_addr,
      input            WB_RegWrite,
+
+     input CtrlSignalFlush,
+
      //data  
      output reg [31:0] ID_rs1,
      output reg [31:0] ID_rs2,
@@ -29,9 +34,15 @@ module ID(
      output reg ID_MemWrite,
      output reg ID_MemRead,
      output reg ID_RegWrite,
-     output reg [1:0] ID_Branch
+     output reg [1:0] ID_Branch,
+
+     output logic [4:0] rs1_addr,
+     output logic [4:0] rs2_addr
 
 );
+     assign rs1_addr = IF_instr_out[19:15];
+     assign rs2_addr = IF_instr_out[24:20];
+
      //assign ID_pc_out <= IF_pc_out; //
      //assign ID_rs1_addr = IF_instr_out[19:15];
      //assign ID_rs2_addr = IF_instr_out[24:20];
@@ -49,17 +60,17 @@ module ID(
      wire wire_MemWrite;
      wire wire_MemRead;
      wire wire_RegWrite;
-     wire wire_Branch;
+     wire [1:0] wire_Branch;
 
      RegisterFile RegisterFile(
-          .clk(clk),
+          .clk(~clk),
           .rst(rst),
           .reg_write(WB_RegWrite),
 
           .rs1_addr(IF_instr_out[19:15]),
           .rs2_addr(IF_instr_out[24:20]),
-          .WB_rd_addr(WB_rd_addr[4:0]),
-          .WB_rd_data(WB_rd_data[31:0]),
+          .WB_rd_addr(WB_rd_addr),
+          .WB_rd_data(WB_rd_data),
           //output
           .rs1_data(wire_rs1),
           .rs2_data(wire_rs2)
@@ -121,7 +132,7 @@ module ID(
                ID_pc_out   <= IF_pc_out;
                ID_funct3   <= IF_instr_out[14:12];
                ID_funct7   <= IF_instr_out[31:25];
-               ID_rd_addr  <= WB_rd_addr;
+               ID_rd_addr  <= IF_instr_out[11:7];
                ID_imm      <= wire_imm;
 
                //control unit output
@@ -130,10 +141,10 @@ module ID(
                ID_ALUSrc      <= wire_ALUSrc;
                ID_RDSrc       <= wire_RDSrc;
                ID_MemtoReg    <= wire_MemtoReg;
-               ID_MemWrite    <= wire_MemWrite;
-               ID_MemRead     <= wire_MemRead;
-               ID_RegWrite    <= wire_RegWrite;
-               ID_Branch      <= wire_Branch;
+               ID_MemWrite   <= (CtrlSignalFlush) ? 1'b0 : wire_MemWrite;
+               ID_MemRead    <= (CtrlSignalFlush) ? 1'b0 : wire_MemRead;
+               ID_RegWrite   <= (CtrlSignalFlush) ? 1'b0 : wire_RegWrite;
+               ID_Branch     <= (CtrlSignalFlush) ? 2'b0 : wire_Branch;
          
           end
           end

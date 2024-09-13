@@ -7,9 +7,10 @@ module Program_Counter(
 );
 
 always_ff @(posedge rst or posedge clk) begin
-     if(rst==0)
+     if(rst)
           pc_out <= 32'b0;
-     else if(PC_write)
+     else 
+          if(PC_write)
           pc_out <= pc_in;
 end
 

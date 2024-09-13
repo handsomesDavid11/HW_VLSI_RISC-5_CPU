@@ -10,8 +10,8 @@ module BranchCtrl(
                          PC_IMMRS1 = 2'b10;
 
      localparam [1:0]    None_branch = 2'b00,
-                         B_branch    = 2'b01,
-                         JALR_branch = 2'b10,
+                         JALR_branch = 2'b01,
+                         B_branch    = 2'b10,
                          J_branch    = 2'b11;
 
 
@@ -20,6 +20,9 @@ module BranchCtrl(
                None_branch:begin
                     BranchCtrl = PC_4;
                end
+               JALR_branch:begin
+                    BranchCtrl = PC_IMMRS1;
+               end
                B_branch:begin
                     if(wire_zeroFlag)
                          BranchCtrl = PC_IMM;
@@ -27,11 +30,11 @@ module BranchCtrl(
                          BranchCtrl = PC_4;
 
                end
-               JALR_branch:begin
-                    BranchCtrl = PC_IMMRS1;
-               end
                J_branch:begin
                     BranchCtrl = PC_IMM;
+               end
+               default: begin
+                    BranchCtrl = PC_4;
                end
 
           endcase

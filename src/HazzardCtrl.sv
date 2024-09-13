@@ -12,14 +12,11 @@ module HazardCtrl(
 
 );
 
-     localparam [1:0]    None_branch = 2'b00,
-                         B_branch    = 2'b01,
-                         JALR_branch = 2'b10,
-                         J_branch    = 2'b11;
+     localparam [1:0] PC4 = 2'b00, PCIMM = 2'b01, IMMRS1 = 2'b10;
 
 
      always_comb begin
-          if( BranchCtrl != None_branch)begin
+          if( BranchCtrl != PC4)begin
                PC_write          = 1'b1;
                instrFlush        = 1'b1;
                IFID_RegWrite     = 1'b1;

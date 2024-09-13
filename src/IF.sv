@@ -23,10 +23,14 @@ module IF (
                          PC_IMM    = 2'b01,
                          PC_IMMRS1 = 2'b10;
 
+     reg [31:0] pc_4;
+
      reg [31:0] wire_pc_out;//pc's result
      reg [31:0] pc_in;
-     assign pc_out=wire_pc_out;
-     assign pc_4=wire_pc_out+4;
+
+     assign pc_4   = wire_pc_out+32'd4;
+     assign pc_out = wire_pc_out;
+     
      always_comb begin
           case (BranchCtrl)
                PC_4:      pc_in = pc_4;

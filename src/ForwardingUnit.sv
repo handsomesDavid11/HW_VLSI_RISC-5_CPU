@@ -1,28 +1,28 @@
 module ForwardingUnit(
-     input MEM_regWrite,
-     input EXE_regWrite,
+     input MEM_RegWrite,
+     input EXE_RegWrite,
      input [4:0] rs1_addr,
      input [4:0] rs2_addr,
      input [4:0] MEM_rd_addr, 
      input [4:0] EXE_rd_addr,
-     output reg [1:0] FDSignal
+     output reg [1:0] FDSignal1,
+     output reg [1:0] FDSignal2
 );
      always_comb begin
-     if(EXE_regWrite && rs1_addr==EXE_rd_addr)
-          FDSignal = 2'b01;
-     else if(MEM_regWrite && rs1_addr==MEM_rd_addr)
-          FDSignal = 2'b10;
+     if(EXE_RegWrite && rs1_addr==EXE_rd_addr)
+          FDSignal1 = 2'b01;
+     else if(MEM_RegWrite && rs1_addr==MEM_rd_addr)
+          FDSignal1 = 2'b10;
      else
-          FDSignal = 2'b00;
+          FDSignal1 = 2'b00;
 
-     end
-     always_comb begin
-     if(EXE_regWrite && rs2_addr==EXE_rd_addr)
-          FDSignal = 2'b01;
-     else if(MEM_regWrite && rs2_addr==MEM_rd_addr)
-          FDSignal = 2'b10;
+
+     if(EXE_RegWrite && rs2_addr==EXE_rd_addr)
+          FDSignal2 = 2'b01;
+     else if(MEM_RegWrite && rs2_addr==MEM_rd_addr)
+          FDSignal2 = 2'b10;
      else
-          FDSignal = 2'b00;
+          FDSignal2 = 2'b00;
 
      end
 
